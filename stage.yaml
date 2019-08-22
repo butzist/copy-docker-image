@@ -1,0 +1,71 @@
+job:
+  preconfigured:
+    kubernetes:
+      - label: CopyDockerImage
+        type: copyDockerImage
+        description: Copy/promote a docker image from one registry to the other
+        cloudProvider: kubernetes
+        account: kubernetes
+        credentials: kubernetes
+        waitForCompletion: true
+        application: k8s2
+        parameters:
+          - name: SOURCE
+            label: Source docker image uri
+            description: Source uri to copy the image from (see https://github.com/containers/skopeo#copying-images).
+            mapping: manifest.spec.template.spec.containers[0].env[0].value
+            defaultValue: "docker://docker.io/nginx:1.17"
+          - name: DESTINATION
+            label: Destination docker image uri
+            description: Destination uri to copy the image to (see https://github.com/containers/skopeo#copying-images).
+            mapping: manifest.spec.template.spec.containers[0].env[1].value
+            defaultValue: "docker://devopsdemospinnaker.azurecr.io/nginx:v1.17"
+          - name: SOURCE_SECRET_NAME
+            label: Source secret name
+            description: The secret that contains the source secret
+            mapping: manifest.spec.template.spec.containers[0].env[2].valueFrom.secretKeyRef.name
+            defaultValue: "copy-image-secrets"
+          - name: SOURCE_SECRET_KEY
+            label: Source secret key
+            description: The key that contains the source secret (format: "user:password")
+            mapping: manifest.spec.template.spec.containers[0].env[2].valueFrom.secretKeyRef.key
+            defaultValue: "dev"
+          - name: DESTINATION_SECRET_NAME
+            label: Destination secret name
+            description: The secret that contains the destination secret
+            mapping: manifest.spec.template.spec.containers[0].env[3].valueFrom.secretKeyRef.name
+            defaultValue: "copy-image-secrets"
+          - name: DESTINATION_SECRET_KEY
+            label: Destination secret key
+            description: The key that contains the destination secret (format: "user:password")
+            mapping: manifest.spec.template.spec.containers[0].env[3].valueFrom.secretKeyRef.key
+            defaultValue: "prod"
+        manifest:
+          apiVersion: batch/v1
+          kind: Job
+          metadata:
+            name: copy-docker-image
+            namespace: spinnaker
+          spec:
+            backoffLimit: 0
+            template:
+              spec:
+                restartPolicy: Never
+                containers: 
+                  - name: copy-docker-image
+                    image: butzist/copy-docker-image:latest
+                    env:
+                      - name: SOURCE
+                        value: invalid
+                      - name: DESTINATION
+                        value: invalid
+                      - name: SOURCE_CREDENTIALS
+                        valueFrom:
+                          secretKeyRef:
+                            name: invalid
+                            key: invalid
+                      - name: DESTINATION_CREDENTIALS
+                        valueFrom:
+                          secretKeyRef:
+                            name: invalid
+                            key: invalid
