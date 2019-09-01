@@ -13,4 +13,4 @@ fi
 PARAMS+=("${1:-${SOURCE}}")
 PARAMS+=("${2:-${DESTINATION}}")
 
-skopeo copy "${PARAMS[@]}"
+skopeo copy --src-tls-verify=false --dest-tls-verify=false "${PARAMS[@]}"
